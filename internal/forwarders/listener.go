@@ -3,6 +3,7 @@
 package forwarders
 
 import (
+	"errors"
 	"github.com/TeaOSLab/EdgeForward/internal/configs"
 	"github.com/TeaOSLab/EdgeForward/internal/goman"
 	"github.com/iwind/TeaGo/types"
@@ -47,6 +48,24 @@ func (this *Listener) Start() error {
 	return nil
 }
 
+func (this *Listener) Stop() error {
+	if this.rawListener == nil {
+		return nil
+	}
+	return this.rawListener.Close()
+}
+
+func (this *Listener) Test() error {
+	// 检查连接
+	var addr = this.rule.DestHost() + ":" + types.String(this.rule.DestPort())
+	destConn, err := net.DialTimeout("tcp", addr, 30*time.Second)
+	if err != nil {
+		return errors.New("connect '" + addr + "' failed: " + err.Error())
+	}
+	_ = destConn.Close()
+	return nil
+}
+
 func (this *Listener) handleConn(conn net.Conn) error {
 	destConn, err := net.DialTimeout("tcp", this.rule.DestHost()+":"+types.String(this.rule.DestPort()), 30*time.Second)
 	if err != nil {
@@ -72,11 +91,4 @@ func (this *Listener) handleConn(conn net.Conn) error {
 	}()
 
 	return nil
-}
-
-func (this *Listener) Stop() error {
-	if this.rawListener == nil {
-		return nil
-	}
-	return this.rawListener.Close()
 }

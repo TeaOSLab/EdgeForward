@@ -14,7 +14,15 @@ func main() {
 	var app = apps.NewAppCmd().
 		Version(teaconst.Version).
 		Product(teaconst.ProductName).
-		Usage(teaconst.ProcessName + " [-v|start|stop|restart|status]")
+		Usage(teaconst.ProcessName + " [-v|start|stop|restart|status|test]")
+	app.On("test", func() {
+		err := forwarders.NewForwarder().Test()
+		if err != nil {
+			logs.Println("[ERROR]" + err.Error())
+		} else {
+			logs.Println("everything is ok!")
+		}
+	})
 	app.Run(func() {
 		err := forwarders.NewForwarder().Listen()
 		if err != nil {
